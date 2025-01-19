@@ -13,6 +13,7 @@ LexiLearn 是一个智能英语阅读辅助工具，它能自动识别文章中�
 - 💡 支持批量并发请求
 - 🎨 优雅的进度显示
 - 📝 自动记忆已学单词
+- 📄 完整保留原文格式
 
 ## 安装
 
@@ -64,6 +65,7 @@ APP_CONFIG = {
 1. 准备文件：
    - 创建 `input_article.txt`，粘贴你要阅读的英文文章
    - （可选）创建 `known_words.txt`，每行一个已掌握的单词
+   - 支持多段落文本，会保留原文的段落格式
 
 2. 运行程序：
 ```bash
@@ -73,6 +75,7 @@ python main.py
 3. 查看结果：
    - 程序会生成 `output_article.txt`
    - 文章中的生词会标注中文释义
+   - 保持原文的段落结构和格式
    - 文末会附上本次学习的生词表
    - 新学习的单词会自动添加到词汇表中
 
@@ -80,25 +83,75 @@ python main.py
 
 原文：
 ```text
-The rapid advancement of artificial intelligence has transformed various sectors of our economy.
+The rapid advancement of artificial intelligence has transformed various sectors of our economy. Companies worldwide are leveraging machine learning algorithms to optimize their operations and enhance customer experience.
+
+Despite the unprecedented benefits, some experts caution about potential risks and ethical implications. The need for responsible development becomes increasingly apparent.
+
+John, a renowned researcher at MIT, emphasizes the importance of responsible AI development. He argues that while innovation is crucial, we must ensure that technological progress aligns with human values and societal needs.
 ```
 
 处理后：
 ```text
-The rapid advancement(进展) of artificial(人工的) intelligence(智能) has transformed(改变) various(各种) sectors(部门) of our economy(经济).
+The rapid advancement(进展) of artificial(人工的) intelligence(智能) has transformed(改变) various(各种) sectors(部门) of our economy(经济). Companies(公司) worldwide(全球) are leveraging(利用) machine(机器) learning(学习) algorithms(算法) to optimize(优化) their operations(运营) and enhance(提高) customer(客户) experience(体验).
+
+Despite(尽管) the unprecedented(空前的) benefits(好处), some experts(专家) caution(警告) about potential(潜在的) risks(风险) and ethical(伦理的) implications(影响). The need for responsible(负责任的) development(发展) becomes increasingly(日益) apparent(明显的).
+
+John, a renowned(著名的) researcher(研究员) at MIT, emphasizes(强调) the importance(重要性) of responsible(负责任的) AI development(发展). He argues(论证) that while innovation(创新) is crucial(关键的), we must ensure(确保) that technological(技术的) progress(进步) aligns(符合) with human values(价值观) and societal(社会的) needs(需求).
 
 ==================================================
 Word Bank
 ==================================================
 
-advancement : 进展
-artificial  : 人工的
-economy     : 经济
-intelligence: 智能
-sectors     : 部门
-transformed : 改变
-various     : 各种
+advancement  : 进展
+algorithms   : 算法
+aligns       : 符合
+apparent     : 明显的
+artificial   : 人工的
+benefits     : 好处
+caution      : 警告
+companies    : 公司
+crucial      : 关键的
+customer     : 客户
+development  : 发展
+enhance      : 提高
+ensures      : 确保
+ethical      : 伦理的
+experience   : 体验
+experts      : 专家
+implications : 影响
+importance   : 重要性
+increasingly : 日益
+innovation   : 创新
+intelligence : 智能
+leveraging   : 利用
+machine      : 机器
+needs        : 需求
+operations   : 运营
+optimize     : 优化
+potential    : 潜在的
+progress     : 进步
+renowned     : 著名的
+researcher   : 研究员
+responsible  : 负责任的
+risks        : 风险
+sectors      : 部门
+societal     : 社会的
+technological: 技术的
+transformed  : 改变
+unprecedented: 空前的
+values       : 价值观
+various      : 各种
+worldwide    : 全球
 ```
+
+## 格式说明
+
+- 原文的段落结构完全保留
+- 每个生词后用括号标注中文含义
+- 专有名词（如人名、地名）保持原样
+- 词汇表按字母顺序排列
+- 相同单词只在词汇表中出现一次
+- 保持原文的标点符号和空格
 
 ## 性能调优
 
