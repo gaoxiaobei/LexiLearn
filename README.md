@@ -45,7 +45,7 @@ cp config.example.py config.py
 API_CONFIG = {
     "base_url": "https://your-api-endpoint/v1/chat/completions",
     "api_key": "your-api-key-here",
-    "model": "gpt-3.5-turbo"
+    "model": "gpt-4o-mini"
 }
 
 # 程序配置
