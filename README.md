@@ -18,7 +18,7 @@ LexiLearn 是一个智能英语阅读辅助工具，它能自动识别文章中�
 
 1. 克隆仓库：
 ```bash
-git clone https://github.com/yourusername/LexiLearn.git
+git clone https://github.com/gaoxiaobei/LexiLearn.git
 cd LexiLearn
 ```
 
