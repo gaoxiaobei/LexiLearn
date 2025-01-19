@@ -173,42 +173,57 @@ async def process_article_async(
         article = f.read()
 
     print("正在分析文章...")
-    sentences = nltk.sent_tokenize(article)
+    # 先按段落分割
+    paragraphs = article.split('\n\n')
     all_new_words = set()
     word_translations = {}
-    processed_sentences = []
+    processed_paragraphs = []
 
-    pbar = tqdm(total=len(sentences), desc="处理进度", unit="句")
+    # 处理每个段落
+    for paragraph in paragraphs:
+        if not paragraph.strip():  # 跳过空段落
+            processed_paragraphs.append('')
+            continue
 
-    connector = aiohttp.TCPConnector(limit=APP_CONFIG['connector_limit'])
-    async with aiohttp.ClientSession(connector=connector) as session:
-        for i in range(0, len(sentences), APP_CONFIG['batch_size']):
-            batch = sentences[i:i + APP_CONFIG['batch_size']]
-            tasks = [
-                process_sentence_async(
-                    sentence,
-                    vocab_manager,
-                    session,
-                    pbar,
-                    word_translations
-                ) for sentence in batch
-            ]
-            results = await asyncio.gather(*tasks)
-            
-            for processed_sentence, new_words in results:
-                processed_sentences.append(processed_sentence)
-                all_new_words.update(new_words)
-            
-            await asyncio.sleep(APP_CONFIG['sleep_time'])
+        sentences = nltk.sent_tokenize(paragraph)
+        processed_sentences = []
 
-    pbar.close()
+        pbar = tqdm(total=len(sentences), desc="处理进度", unit="句")
+
+        connector = aiohttp.TCPConnector(limit=APP_CONFIG['connector_limit'])
+        async with aiohttp.ClientSession(connector=connector) as session:
+            for i in range(0, len(sentences), APP_CONFIG['batch_size']):
+                batch = sentences[i:i + APP_CONFIG['batch_size']]
+                tasks = [
+                    process_sentence_async(
+                        sentence,
+                        vocab_manager,
+                        session,
+                        pbar,
+                        word_translations
+                    ) for sentence in batch
+                ]
+                results = await asyncio.gather(*tasks)
+                
+                for processed_sentence, new_words in results:
+                    processed_sentences.append(processed_sentence)
+                    all_new_words.update(new_words)
+                
+                await asyncio.sleep(APP_CONFIG['sleep_time'])
+
+        pbar.close()
+        # 将处理后的句子重新组合成段落
+        processed_paragraphs.append(' '.join(processed_sentences))
+    
+    # 使用原始的段落分隔符重新组合文章
+    processed_article = '\n\n'.join(processed_paragraphs)
     
     word_bank_entries = sorted(
         [f"{word}: {translation}" for word, translation in word_translations.items()],
         key=lambda x: x.split(':')[0].strip().lower()
     )
     
-    return ' '.join(processed_sentences), all_new_words, word_bank_entries
+    return processed_article, all_new_words, word_bank_entries
 
 def format_word_bank(word_bank_entries: List[str]) -> str:
     """格式化词汇表"""
