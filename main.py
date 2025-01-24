@@ -6,44 +6,56 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tag import pos_tag
 import re
 from tqdm import tqdm
-import time
 from typing import Set, List, Tuple, Dict
 
-try:
-    from config import API_CONFIG, APP_CONFIG
-except ImportError:
-    print("请先复制 config.example.py 为 config.py 并进行配置")
-    exit(1)
+# API配置
+API_CONFIG = {
+    "base_url": "你的API基础URL",
+    "api_key": "你的API密钥",
+    "model": "gpt-3.5-turbo"
+}
+
+# 程序配置
+APP_CONFIG = {
+    "batch_size": 10,          # 并行处理的批量大小
+    "connector_limit": 10,     # 并发连接数限制
+    "sleep_time": 0.5,        # 批次间延迟时间（秒）
+}
 
 class VocabularyManager:
-    def __init__(self, known_words_path: str):
+    def __init__(self, known_words_path: str, target_words_path: str, learned_words_path: str):
         """初始化词汇管理器"""
         self.known_words_path = known_words_path
-        self.known_words = self.load_known_words()
+        self.target_words_path = target_words_path
+        self.learned_words_path = learned_words_path
+        self.known_words = self.load_words(known_words_path)
+        self.target_words = self.load_words(target_words_path)
+        self.learned_words = self.load_words(learned_words_path)
         
-    def load_known_words(self) -> Set[str]:
-        """加载已知词汇表"""
+    def load_words(self, file_path: str) -> Set[str]:
+        """加载词汇表"""
         try:
-            with open(self.known_words_path, 'r', encoding='utf-8') as f:
+            with open(file_path, 'r', encoding='utf-8') as f:
                 return set(word.strip().lower() for word in f.readlines())
         except FileNotFoundError:
-            print(f"词汇表文件 {self.known_words_path} 不存在，将创建新文件。")
+            print(f"词汇表文件 {file_path} 不存在，将创建新文件。")
             return set()
     
+    def should_translate(self, word: str) -> bool:
+        """判断单词是否需要翻译"""
+        word = word.lower()
+        return (word in self.target_words and 
+                word not in self.known_words and 
+                word not in self.learned_words)
+    
     def add_words_batch(self, words: Set[str]) -> None:
-        """批量添加新词到词汇表"""
-        new_words = set(word.lower().strip() for word in words)
-        new_words = new_words - self.known_words
-        
+        """批量添加新学习的单词"""
+        new_words = {word.lower().strip() for word in words} - self.learned_words
         if new_words:
-            self.known_words.update(new_words)
-            with open(self.known_words_path, 'a', encoding='utf-8') as f:
+            self.learned_words.update(new_words)
+            with open(self.learned_words_path, 'a', encoding='utf-8') as f:
                 for word in sorted(new_words):
                     f.write(f"{word}\n")
-    
-    def is_known_word(self, word: str) -> bool:
-        """检查词是否为已知词"""
-        return word.lower() in self.known_words
 
 def get_word_base_form(word: str) -> str:
     """获取单词的基本形式"""
@@ -129,7 +141,7 @@ async def process_sentence_async(
             
         base_form = get_word_base_form(word)
         
-        if not vocab_manager.is_known_word(base_form):
+        if vocab_manager.should_translate(base_form):
             if base_form not in word_translations:
                 words_to_translate.append((word, base_form))
                 processed_words.append((word, len(translation_tasks)))
@@ -173,15 +185,13 @@ async def process_article_async(
         article = f.read()
 
     print("正在分析文章...")
-    # 先按段落分割
     paragraphs = article.split('\n\n')
     all_new_words = set()
     word_translations = {}
     processed_paragraphs = []
 
-    # 处理每个段落
     for paragraph in paragraphs:
-        if not paragraph.strip():  # 跳过空段落
+        if not paragraph.strip():
             processed_paragraphs.append('')
             continue
 
@@ -212,10 +222,8 @@ async def process_article_async(
                 await asyncio.sleep(APP_CONFIG['sleep_time'])
 
         pbar.close()
-        # 将处理后的句子重新组合成段落
         processed_paragraphs.append(' '.join(processed_sentences))
     
-    # 使用原始的段落分隔符重新组合文章
     processed_article = '\n\n'.join(processed_paragraphs)
     
     word_bank_entries = sorted(
@@ -246,14 +254,20 @@ def format_word_bank(word_bank_entries: List[str]) -> str:
 
 async def main_async():
     """主程序异步实现"""
-    article_path = APP_CONFIG['input_file']
-    known_words_path = APP_CONFIG['known_words_file']
-    output_path = APP_CONFIG['output_file']
+    article_path = 'input_article.txt'
+    known_words_path = 'known_words.txt'
+    target_words_path = 'target_words.txt'
+    learned_words_path = 'learned_words.txt'
+    output_path = 'output_article.txt'
     
     print("开始处理文章...")
-    print(f"正在加载已知词汇表: {known_words_path}")
+    print(f"正在加载词汇表...")
     
-    vocab_manager = VocabularyManager(known_words_path)
+    vocab_manager = VocabularyManager(
+        known_words_path,
+        target_words_path,
+        learned_words_path
+    )
     
     try:
         processed_article, new_words_to_add, word_bank_entries = await process_article_async(
@@ -271,7 +285,8 @@ async def main_async():
         vocab_manager.add_words_batch(new_words_to_add)
         
         print(f"\n处理完成！结果已保存到 {output_path}")
-        print(f"本次新学习了 {len(new_words_to_add)} 个单词:")
+        print(f"本次新学习了 {len(new_words_to_add)} 个单词")
+        print(f"目标词汇表中还有 {len(vocab_manager.target_words - vocab_manager.known_words - vocab_manager.learned_words)} 个单词未学习")
         
         if word_bank_entries:
             print("\n新学习的单词列表:")
@@ -280,7 +295,7 @@ async def main_async():
                 
     except Exception as e:
         print(f"\n处理过程中出错: {e}")
-        print("由于错误，新词未添加到词汇表")
+        print("由于错误，新词未添加到已学词表")
 
 def main():
     """主程序入口"""
