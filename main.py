@@ -20,6 +20,7 @@ APP_CONFIG = {
     "batch_size": 10,          # 并行处理的批量大小
     "connector_limit": 10,     # 并发连接数限制
     "sleep_time": 0.5,        # 批次间延迟时间（秒）
+    "use_target_words": True  # 是否使用目标词表模式
 }
 
 class VocabularyManager:
@@ -29,8 +30,17 @@ class VocabularyManager:
         self.target_words_path = target_words_path
         self.learned_words_path = learned_words_path
         self.known_words = self.load_words(known_words_path)
-        self.target_words = self.load_words(target_words_path)
         self.learned_words = self.load_words(learned_words_path)
+        
+        # 尝试加载目标词表，如果不存在则禁用 target_words 模式
+        try:
+            self.target_words = self.load_words(target_words_path)
+            if not self.target_words:  # 如果文件存在但为空
+                APP_CONFIG["use_target_words"] = False
+        except FileNotFoundError:
+            self.target_words = set()
+            APP_CONFIG["use_target_words"] = False
+            print(f"目标词表文件 {target_words_path} 不存在，将使用全词表模式。")
         
     def load_words(self, file_path: str) -> Set[str]:
         """加载词汇表"""
@@ -38,15 +48,19 @@ class VocabularyManager:
             with open(file_path, 'r', encoding='utf-8') as f:
                 return set(word.strip().lower() for word in f.readlines())
         except FileNotFoundError:
-            print(f"词汇表文件 {file_path} 不存在，将创建新文件。")
+            print(f"词汇表文件 {file_path} 不存在，将使用默认模式。")
             return set()
     
     def should_translate(self, word: str) -> bool:
         """判断单词是否需要翻译"""
         word = word.lower()
-        return (word in self.target_words and 
-                word not in self.known_words and 
-                word not in self.learned_words)
+        if APP_CONFIG["use_target_words"]:
+            return (word in self.target_words and
+                   word not in self.known_words and
+                   word not in self.learned_words)
+        else:
+            return (word not in self.known_words and
+                   word not in self.learned_words)
     
     def add_words_batch(self, words: Set[str]) -> None:
         """批量添加新学习的单词"""
@@ -261,6 +275,7 @@ async def main_async():
     output_path = 'output_article.txt'
     
     print("开始处理文章...")
+    print(f"模式: {'目标词表模式' if APP_CONFIG['use_target_words'] else '全词表模式'}")
     print(f"正在加载词汇表...")
     
     vocab_manager = VocabularyManager(
@@ -308,3 +323,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    input()
