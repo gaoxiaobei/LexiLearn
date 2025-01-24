@@ -10,9 +10,9 @@ from typing import Set, List, Tuple, Dict
 
 # API配置
 API_CONFIG = {
-    "base_url": "你的API基础URL",
-    "api_key": "你的API密钥",
-    "model": "gpt-3.5-turbo"
+    "base_url": "https://your-api-endpoint/v1/chat/completions",
+    "api_key": "your-api-key-here",
+    "model": "gpt-4o-mini"
 }
 
 # 程序配置
