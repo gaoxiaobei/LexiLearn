@@ -20,6 +20,11 @@ LexiLearn 是一个智能英语阅读辅助工具，它能根据你的目标词�
 pip install aiohttp nltk tqdm
 ```
 
+2. 首次使用需要下载NLTK数据（仅需执行一次）：
+```bash
+python setup.py
+```
+
 ## 配置
 
 1. 在 `main.py` 中填入你的 API 配置：
