@@ -196,7 +196,7 @@ async def process_article_async(
     print("正在分析文章...")
 
     # 标准化撇号：将所有非标准撇号替换为标准撇号
-    article = article.replace("’", "'").replace("‘", "'").replace("`", "'")
+    article = article.replace("’", "'").replace("‘", "'").replace("`", "'").replace("“", '"').replace("”", '"')
 
     paragraphs = article.split('\n\n')
     all_new_words = set()
