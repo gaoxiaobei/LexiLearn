@@ -8,6 +8,7 @@ import re
 from tqdm import tqdm
 from typing import Set, List, Tuple, Dict
 from nltk.tokenize.treebank import TreebankWordDetokenizer
+import os
 
 # API配置
 API_CONFIG = {
@@ -134,52 +135,54 @@ async def process_sentence_async(
 ) -> Tuple[str, Set[str]]:
     """异步处理单个句子"""
     words = word_tokenize(sentence)
-    processed_words = []
     new_words = set()
-    translation_tasks = []
+    word_translations_to_add = {}
+
+    # 收集需要翻译的单词
     words_to_translate = []
     for word in words:
-        if not re.match(r'^[a-zA-Z\']+$', word):  # 允许撇号在单词中
-            processed_words.append(word)
-            continue
+        if word.startswith("'"):
+            continue  # 跳过缩略词中的撇号部分，如 'll, 're 等
+        if not re.match(r'^[a-zA-Z\']+$', word):  # 保留字母和撇号
+            continue  # 跳过非字母单词，如标点符号
         if is_proper_noun(word, sentence):
-            processed_words.append(word)
-            continue
+            continue  # 跳过专有名词
         base_form = get_word_base_form(word)
         if vocab_manager.should_translate(base_form):
-            if base_form not in word_translations:
-                words_to_translate.append((word, base_form))
-                processed_words.append(len(translation_tasks))  # 使用索引
-                translation_tasks.append(get_translation_async(session, word, sentence))
-            else:
-                processed_words.append(f"{word}({word_translations[base_form]})")
-        else:
-            processed_words.append(word)
+            words_to_translate.append(word)
 
-    translations = []
-    if translation_tasks:
-        translations = await asyncio.gather(*translation_tasks)
-        for i, ((word, base_form), (translation, success)) in enumerate(zip(words_to_translate, translations)):
-            if success:
-                new_words.add(base_form)
-                if base_form not in word_translations:
-                    word_translations[base_form] = translation
-                    processed_words = [
-                        f"{word}({translation})" if x == i else x for x in processed_words
-                    ]
+    # 异步获取翻译
+    translation_tasks = [get_translation_async(session, word, sentence) for word in words_to_translate]
+    translations = await asyncio.gather(*translation_tasks)
 
-    # 使用 detokenizer 来正确拼接单词
-    detokenizer = TreebankWordDetokenizer()
-    result_words = []
-    for item in processed_words:
-        if isinstance(item, int):
-            # 这是一个需要翻译的单词，其翻译已在上面处理
-            # 不需要额外处理，因为已经在上面的列表中替换
+    # 建立 word 到 translation 的映射
+    translation_map = {}
+    for word, (translation, success) in zip(words_to_translate, translations):
+        if success and translation != "翻译失败":
+            translation_map[word] = translation
+            new_words.add(get_word_base_form(word))
+            word_translations_to_add[get_word_base_form(word)] = translation
+
+    # 构建注释后的单词列表
+    annotated_words = []
+    for word in words:
+        if word.startswith("'"):
+            annotated_words.append(word)
             continue
+        if word in translation_map:
+            annotated_word = f"{word}({translation_map[word]})"
+            annotated_words.append(annotated_word)
         else:
-            result_words.append(item)
+            annotated_words.append(word)
 
-    detokenized_sentence = detokenizer.detokenize(result_words)
+    # 更新词汇表
+    word_translations.update(word_translations_to_add)
+    vocab_manager.add_words_batch(new_words)
+
+    # 使用 detokenizer 正确拼接单词列表，避免额外空格
+    detokenizer = TreebankWordDetokenizer()
+    detokenized_sentence = detokenizer.detokenize(annotated_words)
+
     pbar.update(1)
     return detokenized_sentence, new_words
 
@@ -193,7 +196,7 @@ async def process_article_async(
     print("正在分析文章...")
 
     # 标准化撇号：将所有非标准撇号替换为标准撇号
-    article = article.replace("’", "'").replace("‘", "'").replace("’", "'")
+    article = article.replace("’", "'").replace("‘", "'").replace("`", "'")
 
     paragraphs = article.split('\n\n')
     all_new_words = set()
@@ -250,11 +253,10 @@ def format_word_bank(word_bank_entries: List[str]) -> str:
 
 def clean_punctuation_spacing(text: str) -> str:
     """
-    保留 `TreebankWordDetokenizer` 的功能，移除不必要的空格。
-    由于 detokenizer 已经正确处理了标点符号和缩略词，
-    此函数可简化或保留用于进一步清理。
+    最终清理步骤（如果需要，可以添加更多规则）。
+    由于 detokenizer 已经正确处理了大部分标点符号和撇号，
+    此函数主要保留，以便在未来添加额外的清理步骤。
     """
-    # 可以根据需要添加额外的清理步骤，这里暂时保留为空
     return text
 
 async def main_async():
@@ -278,10 +280,10 @@ async def main_async():
             article_path,
             vocab_manager
         )
-        
-        # 清理标点符号前后的多余空格（已由 detokenizer 处理）
+
+        # 清理标点符号前后的多余空格（detokenizer 已处理）
         processed_article = clean_punctuation_spacing(processed_article)
-        
+
         word_bank = format_word_bank(word_bank_entries)
         # 不需要再次清理 word_bank，因为它已经被格式化好
 
@@ -289,7 +291,6 @@ async def main_async():
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(processed_article)
             f.write(word_bank)
-        vocab_manager.add_words_batch(new_words_to_add)
         print(f"\n处理完成！结果已保存到 {output_path}")
         print(f"本次新学习了 {len(new_words_to_add)} 个单词")
         if APP_CONFIG["use_target_words"]:
