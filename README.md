@@ -25,9 +25,9 @@ pip install aiohttp nltk tqdm
 1. 在 `main.py` 中填入你的 API 配置：
 ```python
 API_CONFIG = {
-    "base_url": "你的API基础URL",
-    "api_key": "你的API密钥",
-    "model": "gpt-3.5-turbo"
+    "base_url": "https://your-api-endpoint/v1/chat/completions",
+    "api_key": "your-api-key-here",
+    "model": "gpt-4o-mini"
 }
 ```
 
