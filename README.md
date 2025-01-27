@@ -24,7 +24,8 @@ pip install aiohttp nltk tqdm
 ```bash
 python setup.py
 ```
-可以参考https://blog.csdn.net/qq_39451578/article/details/107682931，解压tokenizers中的压缩包，taggers中的averaged_perceptron_tagger_eng.zip。
+可以参考https://blog.csdn.net/qq_39451578/article/details/107682931
+解压tokenizers中的压缩包，taggers中的averaged_perceptron_tagger_eng.zip。
 
 ## 配置
 
