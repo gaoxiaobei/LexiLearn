@@ -35,10 +35,20 @@ def download_nltk_data():
         print("Downloading NLTK 'punkt' model...")
         nltk.download('punkt')
     try:
+        nltk.data.find('tokenizers/punkt_tab')
+    except LookupError:
+        print("Downloading NLTK 'punkt_tab' model...")
+        nltk.download('punkt_tab')
+    try:
         nltk.data.find('taggers/averaged_perceptron_tagger')
     except LookupError:
         print("Downloading NLTK 'averaged_perceptron_tagger' model...")
         nltk.download('averaged_perceptron_tagger')
+    try:
+        nltk.data.find('taggers/averaged_perceptron_tagger_eng')
+    except LookupError:
+        print("Downloading NLTK 'averaged_perceptron_tagger_eng' model...")
+        nltk.download('averaged_perceptron_tagger_eng')
     try:
         nltk.data.find('corpora/wordnet')
     except LookupError:
