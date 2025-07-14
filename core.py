@@ -12,20 +12,32 @@ from nltk.tokenize.treebank import TreebankWordDetokenizer
 import os
 import json
 
-# API配置
-API_CONFIG = {
-    "base_url": "https://your-api-endpoint/v1/chat/completions",
-    "api_key": os.environ.get("API_KEY"),
-    "model": "gpt-4o-mini"
-}
+def load_settings(settings_path: str) -> Tuple[Dict, Dict, Dict]:
+    """从JSON文件加载配置"""
+    try:
+        with open(settings_path, 'r', encoding='utf-8') as f:
+            settings = json.load(f)
+            api_config = settings.get("api_config", {})
+            app_config = settings.get("app_config", {})
+            file_paths = settings.get("file_paths", {})
+            
+            # 验证关键配置是否存在
+            if not all(k in api_config for k in ["base_url", "api_key", "model"]):
+                raise ValueError("API配置不完整")
+            if not all(k in app_config for k in ["batch_size", "connector_limit", "sleep_time"]):
+                raise ValueError("APP配置不完整")
+            if not all(k in file_paths for k in ["known_words", "target_words", "learned_words"]):
+                raise ValueError("文件路径配置不完整")
+                
+            return api_config, app_config, file_paths
+    except (FileNotFoundError, json.JSONDecodeError, ValueError) as e:
+        print(f"错误：无法加载或解析 {settings_path}: {e}")
+        print("请确保 settings.json 文件存在且格式正确。")
+        exit(1)
 
-# 程序配置
-APP_CONFIG = {
-    "batch_size": 5,
-    "connector_limit": 10,
-    "sleep_time": 0.5,
-    "use_target_words": True
-}
+# 加载配置
+API_CONFIG, APP_CONFIG, FILE_PATHS = load_settings("settings.json")
+
 
 def download_nltk_data():
     """下载NLTK所需数据"""
@@ -56,20 +68,20 @@ def download_nltk_data():
         nltk.download('wordnet')
 
 class VocabularyManager:
-    def __init__(self, known_words_path: str, target_words_path: str, learned_words_path: str):
-        self.known_words_path = known_words_path
-        self.target_words_path = target_words_path
-        self.learned_words_path = learned_words_path
-        self.known_words = self.load_words(known_words_path)
-        self.learned_words = self.load_words(learned_words_path)
+    def __init__(self):
+        self.known_words_path = FILE_PATHS['known_words']
+        self.target_words_path = FILE_PATHS['target_words']
+        self.learned_words_path = FILE_PATHS['learned_words']
+        self.known_words = self.load_words(self.known_words_path)
+        self.learned_words = self.load_words(self.learned_words_path)
         try:
-            self.target_words = self.load_words(target_words_path)
+            self.target_words = self.load_words(self.target_words_path)
             if not self.target_words:
                 APP_CONFIG["use_target_words"] = False
         except FileNotFoundError:
             self.target_words = set()
             APP_CONFIG["use_target_words"] = False
-            print(f"目标词表文件 {target_words_path} 不存在，将使用全词表模式。")
+            print(f"目标词表文件 {self.target_words_path} 不存在，将使用全词表模式。")
 
     def load_words(self, file_path: str) -> Set[str]:
         try:
@@ -199,6 +211,9 @@ async def process_paragraph_async(
     new_words = set()
     word_translations_map = {}
 
+    word_to_base_form = {item['word']: item['base_form'] for item in unique_words_to_translate}
+    detokenizer = TreebankWordDetokenizer()
+
     for sentence in sentences:
         words = word_tokenize(sentence)
         annotated_words = []
@@ -207,14 +222,13 @@ async def process_paragraph_async(
                 annotated_words.append(f"{word}({translations[word]})")
                 
                 # 找到对应的base_form
-                base_form = next((item['base_form'] for item in unique_words_to_translate if item['word'] == word), None)
+                base_form = word_to_base_form.get(word)
                 if base_form:
                     new_words.add(base_form)
                     word_translations_map[base_form] = translations[word]
             else:
                 annotated_words.append(word)
         
-        detokenizer = TreebankWordDetokenizer()
         processed_sentences.append(detokenizer.detokenize(annotated_words))
 
     if pbar:

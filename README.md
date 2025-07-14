@@ -1,16 +1,17 @@
 # LexiLearn
 
-LexiLearn is an intelligent English reading assistant that helps you systematically build your vocabulary by providing real-time translations for unknown words in an article, based on your learning goals.
+LexiLearn is an intelligent English reading assistant with a graphical user interface (GUI) that helps you systematically build your vocabulary. It provides real-time translations for unknown words in an article, based on your learning goals, and allows you to manage all settings through a user-friendly interface.
 
 ## Features
 
+-  GUI-First: A simple and intuitive GUI for a smooth user experience.
 - 🎯 **Targeted Learning**: Translates only the words from your target list, or all unknown words.
 - 🚀 **Optimized for Speed**: Uses asynchronous processing and batch API requests to translate words quickly.
-- 📚 **Vocabulary Management**: Maintains separate lists for known, target, and learned words.
+- 📚 **Vocabulary Management**: Easily manage your known and target word lists through the GUI.
 - 🔄 **Progress Tracking**: Automatically updates your learned words list, so you only learn new words once.
 - 📊 **Clean Output**: Generates a clean, annotated article and a word bank of newly learned words.
-- ⚙️ **Configurable**: Easily configure file paths and processing parameters through command-line arguments.
-- 🔐 **Secure**: Keeps your API key safe by loading it from an environment variable.
+- ⚙️ **Centralized Configuration**: All settings, including API keys and file paths, are managed in a single `settings.json` file, editable through the GUI.
+- 🔐 **Secure**: Keeps your API key safe by storing it in a configuration file, not in the code.
 
 ## Installation
 
@@ -21,72 +22,48 @@ LexiLearn is an intelligent English reading assistant that helps you systematica
     pip install -r requirements.txt
     ```
 
-3.  **NLTK Data**: The first time you run the script, it will automatically download the necessary data models from NLTK (`punkt`, `averaged_perceptron_tagger`, `wordnet`).
+3.  **NLTK Data**: The first time you run the application, it will automatically download the necessary data models from NLTK in the background.
 
 ## Configuration
 
-1.  **Set the API Key**: Before running the script, you need to set your API key as an environment variable named `API_KEY`.
+All configuration is now managed through the `settings.json` file. You can edit this file directly or use the in-app **Settings** window.
 
-    -   **On Windows:**
-        ```powershell
-        $env:API_KEY="your-api-key-here"
-        ```
-        *Note: This sets the variable for the current session. For a permanent setting, use the System Properties dialog.*
-
-    -   **On macOS/Linux:**
-        ```bash
-        export API_KEY="your-api-key-here"
-        ```
-        *Note: Add this line to your `~/.bashrc` or `~/.zshrc` file for it to persist across sessions.*
-
-2.  **API Endpoint**: If you need to use a different API endpoint, you can modify it in the `main.py` script:
-    ```python
-    API_CONFIG = {
-        "base_url": "https://your-api-endpoint/v1/chat/completions",
-        # ...
-    }
+1.  **Launch the application**:
+    ```bash
+    python gui.py
     ```
+
+2.  **Open the Settings Window**: Click on the "Settings" button to open the configuration panel.
+
+3.  **Set Your API Key**: In the Settings window, enter your API key in the "Api Key" field. Without a valid key, the translation service will not work.
+
+4.  **Customize Paths and Parameters (Optional)**:
+    -   **API Configuration**: Change the `base_url` or `model` if needed.
+    -   **Application Configuration**: Adjust `batch_size`, `connector_limit`, or `sleep_time` to fine-tune performance.
+    -   **File Paths**: Modify the default file paths for your word lists (`known_words`, `target_words`, `learned_words`).
+
+5.  **Save and Restart**: Click "Save" to apply your changes. A restart is required for the new settings to take effect.
 
 ## Usage
 
-1.  **Prepare your files**:
-    -   `input_article.txt`: The English article you want to process. A sample file is provided.
-    -   `known_words.txt`: A list of words you already know (one word per line). A sample file is provided.
-    -   `target_words.txt`: A list of words you want to learn. If this file is empty or doesn't exist, the script will operate in "Full Word List" mode, identifying all unknown words. A sample file is provided.
-    -   `learned_words.txt`: This file is automatically created and updated by the script to track the words you've learned.
-
-2.  **Run the script from your terminal**:
+1.  **Run the application**:
     ```bash
-    python main.py [input_file] [options]
+    python gui.py
     ```
 
-    **Examples:**
+2.  **Manage Word Lists (Optional)**:
+    -   Click the "Manage Words" button to add or remove words from your `known_words.txt` and `target_words.txt` lists.
+    -   Click "Save and Close" when you are finished.
 
-    -   **To process the default `input_article.txt`:**
-        ```bash
-        python main.py
-        ```
+3.  **Process an Article**:
+    -   **Load an article**: Click "Load File" to select a `.txt` file or paste your text directly into the "Input Article" panel.
+    -   **Start processing**: Click the "Process" button. The application will analyze the text and display the annotated version in the "Processed Article" panel.
+    -   The status bar and progress bar will show the real-time progress.
 
-    -   **To specify a different input file and output file:**
-        ```bash
-        python main.py my_article.txt -o my_annotated_article.txt
-        ```
-
-    -   **To use different word lists:**
-        ```bash
-        python main.py --known_words my_known_words.txt --target_words my_targets.txt
-        ```
-
-    For a full list of options, run:
-    ```bash
-    python main.py --help
-    ```
-
-3.  **Check the output**:
-    -   The processed article will be saved to `output_article.txt` (or the file you specified with `-o`).
-    -   Unknown words will be annotated with their translations (e.g., `word(translation)`).
-    -   A "Word Bank" will be appended to the end of the output file, listing the new words you've learned in this session.
-    -   The `learned_words.txt` file will be updated with the new words.
+4.  **View the Results**:
+    -   The processed article with inline translations will appear on the right.
+    -   A "Word Bank" with all the newly learned words and their translations will be at the end.
+    -   Your `learned_words.txt` file will be automatically updated.
 
 ## How It Works
 

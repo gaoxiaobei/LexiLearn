@@ -3,14 +3,141 @@ from tkinter import ttk, filedialog, messagebox
 import asyncio
 import threading
 import queue
+import json
+
 import os
 from core import (
     API_CONFIG,
+    APP_CONFIG,
+    FILE_PATHS,
     VocabularyManager,
     process_article_async,
     format_word_bank,
     download_nltk_data,
 )
+
+
+
+class SettingsWindow(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Settings")
+        self.geometry("500x450")
+        self.transient(parent)
+        self.grab_set()
+
+        self.settings_path = "settings.json"
+        self.entries = {}
+
+        self.create_widgets()
+        self.load_settings()
+
+    def create_widgets(self):
+        main_frame = ttk.Frame(self, padding="10")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        api_frame = ttk.LabelFrame(main_frame, text="API Configuration", padding="10")
+        api_frame.pack(fill=tk.X, pady=5)
+
+        app_frame = ttk.LabelFrame(main_frame, text="Application Configuration", padding="10")
+        app_frame.pack(fill=tk.X, pady=5)
+
+        paths_frame = ttk.LabelFrame(main_frame, text="File Paths", padding="10")
+        paths_frame.pack(fill=tk.X, pady=5)
+
+        # API settings
+        api_settings = ["base_url", "api_key", "model"]
+        for i, setting in enumerate(api_settings):
+            ttk.Label(api_frame, text=f"{setting.replace('_', ' ').title()}:").grid(row=i, column=0, sticky="w", pady=2)
+            self.entries[setting] = ttk.Entry(api_frame, width=50)
+            self.entries[setting].grid(row=i, column=1, sticky="ew", padx=5)
+
+        # App settings
+        app_settings = ["batch_size", "connector_limit", "sleep_time", "use_target_words"]
+        for i, setting in enumerate(app_settings):
+            ttk.Label(app_frame, text=f"{setting.replace('_', ' ').title()}:").grid(row=i, column=0, sticky="w", pady=2)
+            if setting == "use_target_words":
+                self.entries[setting] = tk.BooleanVar()
+                ttk.Checkbutton(app_frame, variable=self.entries[setting]).grid(row=i, column=1, sticky="w", padx=5)
+            else:
+                self.entries[setting] = ttk.Entry(app_frame, width=10)
+                self.entries[setting].grid(row=i, column=1, sticky="w", padx=5)
+
+        # File paths
+        path_settings = ["known_words", "target_words", "learned_words"]
+        for i, setting in enumerate(path_settings):
+            ttk.Label(paths_frame, text=f"{setting.replace('_', ' ').title()}:").grid(row=i, column=0, sticky="w", pady=2)
+            self.entries[setting] = ttk.Entry(paths_frame, width=50)
+            self.entries[setting].grid(row=i, column=1, sticky="ew", padx=5)
+
+        # Buttons
+        button_frame = ttk.Frame(main_frame, padding="10")
+        button_frame.pack(fill=tk.X, side=tk.BOTTOM)
+        ttk.Button(button_frame, text="Save", command=self.save_settings).pack(side=tk.RIGHT)
+        ttk.Button(button_frame, text="Cancel", command=self.destroy).pack(side=tk.RIGHT, padx=10)
+
+    def load_settings(self):
+        try:
+            with open(self.settings_path, 'r', encoding='utf-8') as f:
+                settings = json.load(f)
+            
+            api_config = settings.get("api_config", {})
+            app_config = settings.get("app_config", {})
+            file_paths = settings.get("file_paths", {})
+
+            for key, entry in self.entries.items():
+                if key in api_config:
+                    entry.insert(0, api_config.get(key, ""))
+                elif key in app_config:
+                    value = app_config.get(key)
+                    if isinstance(entry, tk.BooleanVar):
+                        entry.set(bool(value))
+                    else:
+                        entry.insert(0, str(value))
+                elif key in file_paths:
+                    entry.insert(0, file_paths.get(key, ""))
+
+        except (FileNotFoundError, json.JSONDecodeError):
+            messagebox.showerror("Error", "Could not load settings.json. Please ensure it exists and is valid.")
+            self.destroy()
+
+    def save_settings(self):
+        settings = {
+            "api_config": {},
+            "app_config": {},
+            "file_paths": {}
+        }
+        
+        for key, entry in self.entries.items():
+            value = entry.get()
+            if key in ["base_url", "api_key", "model"]:
+                settings["api_config"][key] = value
+            elif key in ["known_words", "target_words", "learned_words"]:
+                settings["file_paths"][key] = value
+            else:
+                if key == "use_target_words":
+                    settings["app_config"][key] = bool(value)
+                elif key in ["batch_size", "connector_limit"]:
+                    try:
+                        settings["app_config"][key] = int(value)
+                    except ValueError:
+                        messagebox.showerror("Error", f"Invalid value for {key}. Must be an integer.")
+                        return
+                elif key == "sleep_time":
+                    try:
+                        settings["app_config"][key] = float(value)
+                    except ValueError:
+                        messagebox.showerror("Error", f"Invalid value for {key}. Must be a number.")
+                        return
+        
+        try:
+            with open(self.settings_path, 'w', encoding='utf-8') as f:
+                json.dump(settings, f, indent=2)
+            messagebox.showinfo("Saved", "Settings saved successfully. Please restart the application for changes to take effect.")
+            self.destroy()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save settings: {e}")
+
 
 class WordManagementWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -61,8 +188,8 @@ class WordManagementWindow(tk.Toplevel):
         ttk.Button(button_frame, text="Cancel", command=self.destroy).pack(side=tk.RIGHT, padx=10)
 
     def load_words(self):
-        self.load_word_list("known_words.txt", self.known_list)
-        self.load_word_list("target_words.txt", self.target_list)
+        self.load_word_list(FILE_PATHS['known_words'], self.known_list)
+        self.load_word_list(FILE_PATHS['target_words'], self.target_list)
 
     def load_word_list(self, filename, listbox):
         listbox.delete(0, tk.END)
@@ -83,8 +210,8 @@ class WordManagementWindow(tk.Toplevel):
             listbox.delete(i)
 
     def save_and_close(self):
-        self.save_word_list("known_words.txt", self.known_list)
-        self.save_word_list("target_words.txt", self.target_list)
+        self.save_word_list(FILE_PATHS['known_words'], self.known_list)
+        self.save_word_list(FILE_PATHS['target_words'], self.target_list)
         self.destroy()
 
     def save_word_list(self, filename, listbox):
@@ -140,6 +267,10 @@ class LexiLearnGUI(tk.Tk):
         self.manage_words_button = ttk.Button(button_frame, text="Manage Words", command=self.manage_words)
         self.manage_words_button.pack(side=tk.LEFT, padx=5)
         
+        self.settings_button = ttk.Button(button_frame, text="Settings", command=self.open_settings)
+        self.settings_button.pack(side=tk.LEFT, padx=5)
+        
+        
         # Progress Bar
         self.progress_bar = ttk.Progressbar(main_frame, orient="horizontal", mode="determinate")
         self.progress_bar.pack(fill=tk.X, pady=5)
@@ -164,7 +295,7 @@ class LexiLearnGUI(tk.Tk):
 
     def start_processing(self):
         if not API_CONFIG['api_key']:
-            messagebox.showerror("Error", "API_KEY environment variable not set.")
+            messagebox.showerror("Error", "API key not found. Please set it in the Settings menu.")
             return
             
         input_text = self.input_text.get("1.0", tk.END).strip()
@@ -185,11 +316,7 @@ class LexiLearnGUI(tk.Tk):
 
     async def processing_coroutine(self, article_text):
         try:
-            vocab_manager = VocabularyManager(
-                "known_words.txt",
-                "target_words.txt",
-                "learned_words.txt"
-            )
+            vocab_manager = VocabularyManager()
             
             def progress_callback(progress):
                 self.result_queue.put(("progress", progress))
@@ -237,6 +364,10 @@ class LexiLearnGUI(tk.Tk):
 
     def manage_words(self):
         WordManagementWindow(self)
+
+    def open_settings(self):
+        SettingsWindow(self)
+
 
 if __name__ == "__main__":
     app = LexiLearnGUI()
