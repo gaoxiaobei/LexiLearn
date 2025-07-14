@@ -1,0 +1,10 @@
+This is a sample article for testing the LexiLearn script.
+It contains some simple words and some more complex ones.
+The script should be able to identify the words that are not in the known words list and provide translations for them.
+Let's see how it handles words like "lemmatization", "asynchronous", and "optimization".
+Proper nouns like John and London should be ignored.
+This is the second paragraph. It has some more words.
+What about contractions like "don't" and "shouldn't"?
+The script should handle them correctly.
+Let's test a few more things.
+This is the end of the article.

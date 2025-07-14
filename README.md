@@ -1,121 +1,106 @@
 # LexiLearn
 
-LexiLearn 是一个智能英语阅读辅助工具，它能根据你的目标词汇表标注文章中的生词，提供实时翻译，并帮助你系统地积累词汇量。
+LexiLearn is an intelligent English reading assistant that helps you systematically build your vocabulary by providing real-time translations for unknown words in an article, based on your learning goals.
 
-## 特性
+## Features
 
-- 🎯 只翻译目标词汇表中的单词
-- 🚀 并行处理，快速翻译
-- 📚 分离的词汇管理系统
-- 🔄 实时更新学习进度
-- 📊 生成整洁的生词表
-- 🌐 支持自定义 API 端点
-- 💡 支持批量并发请求
-- 📄 完整保留原文格式
+- 🎯 **Targeted Learning**: Translates only the words from your target list, or all unknown words.
+- 🚀 **Optimized for Speed**: Uses asynchronous processing and batch API requests to translate words quickly.
+- 📚 **Vocabulary Management**: Maintains separate lists for known, target, and learned words.
+- 🔄 **Progress Tracking**: Automatically updates your learned words list, so you only learn new words once.
+- 📊 **Clean Output**: Generates a clean, annotated article and a word bank of newly learned words.
+- ⚙️ **Configurable**: Easily configure file paths and processing parameters through command-line arguments.
+- 🔐 **Secure**: Keeps your API key safe by loading it from an environment variable.
 
-## 安装
+## Installation
 
-1. 安装依赖：
-```bash
-pip install aiohttp nltk tqdm
-```
+1.  **Clone the repository or download the source code.**
 
-2. 首次使用需要下载NLTK数据（仅需执行一次）：
-```bash
-python setup.py
-```
-可以参考https://blog.csdn.net/qq_39451578/article/details/107682931
-解压tokenizers中的压缩包，taggers中的averaged_perceptron_tagger_eng.zip。
+2.  **Install the required Python packages:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## 配置
+3.  **NLTK Data**: The first time you run the script, it will automatically download the necessary data models from NLTK (`punkt`, `averaged_perceptron_tagger`, `wordnet`).
 
-1. 在 `main.py` 中填入你的 API 配置：
-```python
-API_CONFIG = {
-    "base_url": "https://your-api-endpoint/v1/chat/completions",
-    "api_key": "your-api-key-here",
-    "model": "gpt-4o-mini"
-}
-```
+## Configuration
 
-## 使用方法
+1.  **Set the API Key**: Before running the script, you need to set your API key as an environment variable named `API_KEY`.
 
-1. 准备文件：
-   - `input_article.txt`：待处理的英文文章
-   - `known_words.txt`：已掌握的单词列表（每行一个）
-   - `target_words.txt`：想要学习的目标单词列表（每行一个）
-   - `learned_words.txt`：将自动记录新学会的单词（程序自动创建）
+    -   **On Windows:**
+        ```powershell
+        $env:API_KEY="your-api-key-here"
+        ```
+        *Note: This sets the variable for the current session. For a permanent setting, use the System Properties dialog.*
 
-2. 运行程序：
-```bash
-python main.py
-```
+    -   **On macOS/Linux:**
+        ```bash
+        export API_KEY="your-api-key-here"
+        ```
+        *Note: Add this line to your `~/.bashrc` or `~/.zshrc` file for it to persist across sessions.*
 
-3. 查看结果：
-   - 程序生成 `output_article.txt`
-   - 只标注目标词汇表中的生词
-   - 保持原文的段落结构
-   - 文末附上本次学习的生词表
-   - 新学习的单词自动添加到 learned_words.txt
+2.  **API Endpoint**: If you need to use a different API endpoint, you can modify it in the `main.py` script:
+    ```python
+    API_CONFIG = {
+        "base_url": "https://your-api-endpoint/v1/chat/completions",
+        # ...
+    }
+    ```
 
-## 词汇管理说明
+## Usage
 
-- `known_words.txt`：已掌握的词汇，不会被修改
-- `target_words.txt`：学习目标词汇
-- `learned_words.txt`：通过本程序学习的新词
+1.  **Prepare your files**:
+    -   `input_article.txt`: The English article you want to process. A sample file is provided.
+    -   `known_words.txt`: A list of words you already know (one word per line). A sample file is provided.
+    -   `target_words.txt`: A list of words you want to learn. If this file is empty or doesn't exist, the script will operate in "Full Word List" mode, identifying all unknown words. A sample file is provided.
+    -   `learned_words.txt`: This file is automatically created and updated by the script to track the words you've learned.
 
-## 输出示例
+2.  **Run the script from your terminal**:
+    ```bash
+    python main.py [input_file] [options]
+    ```
 
-原文：
-```text
-The rapid advancement of artificial intelligence has transformed various sectors of our economy.
-```
+    **Examples:**
 
-target_words.txt 内容：
-```text
-advancement
-artificial
-intelligence
-transform
-sector
-economy
-```
+    -   **To process the default `input_article.txt`:**
+        ```bash
+        python main.py
+        ```
 
-输出：
-```text
-The rapid advancement(进展) of artificial(人工的) intelligence(智能) has transformed(改变) various sectors(部门) of our economy(经济).
+    -   **To specify a different input file and output file:**
+        ```bash
+        python main.py my_article.txt -o my_annotated_article.txt
+        ```
 
-==================================================
-Word Bank
-==================================================
+    -   **To use different word lists:**
+        ```bash
+        python main.py --known_words my_known_words.txt --target_words my_targets.txt
+        ```
 
-advancement : 进展
-artificial  : 人工的
-economy     : 经济
-intelligence: 智能
-sectors     : 部门
-transformed : 改变
-```
+    For a full list of options, run:
+    ```bash
+    python main.py --help
+    ```
 
-## 注意事项
+3.  **Check the output**:
+    -   The processed article will be saved to `output_article.txt` (or the file you specified with `-o`).
+    -   Unknown words will be annotated with their translations (e.g., `word(translation)`).
+    -   A "Word Bank" will be appended to the end of the output file, listing the new words you've learned in this session.
+    -   The `learned_words.txt` file will be updated with the new words.
 
-1. 确保 API 配置正确
-2. 目标词汇表使用单词原形
-3. 专有名词（人名、地名）会自动跳过
-4. 同一个单词只会在词汇表中出现一次
-5. 已学习的单词会自动记录，下次不再标注
+## How It Works
 
-## 性能调优
+LexiLearn processes the article paragraph by paragraph. For each paragraph, it:
+1.  Identifies all the words.
+2.  Uses NLTK for Part-of-Speech (POS) tagging to understand the role of each word (noun, verb, etc.).
+3.  Determines the base form (lemma) of each word.
+4.  Checks if the base form is a word that needs to be translated based on your word lists.
+5.  Groups all the words that need translation and sends them to the API in a single **batch request**.
+6.  Receives the translations and annotates the article.
+7.  At the end of the process, it updates your `learned_words.txt` file.
 
-可以在代码中调整以下参数：
-```python
-APP_CONFIG = {
-    "batch_size": 10,          # 并行处理的批量大小
-    "connector_limit": 10,     # 并发连接数限制
-    "sleep_time": 0.5,        # 批次间延迟时间（秒）
-}
-```
+This batching approach significantly reduces the number of API calls, making the process faster and more efficient.
 
-## 许可证
+## License
 
 MIT License

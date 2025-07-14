@@ -1,0 +1,3 @@
+lemmatization
+asynchronous
+optimization
