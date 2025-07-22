@@ -1,121 +1,339 @@
-# LexiLearn
+# LexiLearn - English Reading Assistant
 
-LexiLearn 是一个智能英语阅读辅助工具，它能根据你的目标词汇表标注文章中的生词，提供实时翻译，并帮助你系统地积累词汇量。
+A production-ready English reading assistant that provides targeted vocabulary translations to help language learners improve their reading comprehension. Built with a modular, extensible architecture designed for scalability and maintainability.
 
-## 特性
+## 🚀 Features
 
-- 🎯 只翻译目标词汇表中的单词
-- 🚀 并行处理，快速翻译
-- 📚 分离的词汇管理系统
-- 🔄 实时更新学习进度
-- 📊 生成整洁的生词表
-- 🌐 支持自定义 API 端点
-- 💡 支持批量并发请求
-- 📄 完整保留原文格式
+- **Smart Vocabulary Management**: Tracks known, target, and learned words with persistent storage
+- **Contextual Translation**: Uses AI to provide accurate translations based on context
+- **Batch Processing**: Efficiently processes large articles with intelligent rate limiting
+- **Modular Architecture**: Clean separation of concerns with dedicated modules for each responsibility
+- **Configurable**: Comprehensive environment-based configuration for easy deployment
+- **Production Ready**: Comprehensive error handling, logging, monitoring, and validation
+- **Async/Await**: Modern asynchronous programming for optimal performance
+- **Type Safety**: Full type hints and runtime validation
 
-## 安装
+## 📋 Table of Contents
 
-1. 安装依赖：
-```bash
-pip install aiohttp nltk tqdm
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API Documentation](#api-documentation)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Troubleshooting](#troubleshooting)
+
+## 🏗️ Architecture
+
+LexiLearn follows a clean, modular architecture with clear separation of concerns:
+
+```
+lexilearn/
+├── main.py                 # CLI entry point
+├── config.py              # Configuration management (API, processing, files, logging)
+├── logger.py              # Structured logging with decorators
+├── vocabulary.py          # Vocabulary management (known/target/learned words)
+├── text_processor.py      # Text processing (tokenization, normalization, POS tagging)
+├── translator.py          # OpenAI API client for translations
+├── article_processor.py   # Main processing pipeline orchestration
+├── setup.py               # NLTK data setup
+├── test_setup.py          # Testing utilities
+├── validate_structure.py  # Code quality validation
+├── .env.example          # Configuration template
+├── requirements.txt      # Dependencies
+└── docs/                 # Additional documentation
 ```
 
-2. 首次使用需要下载NLTK数据（仅需执行一次）：
+### Core Modules
+
+- **[`config.py`](config.py): Centralized configuration management with validation
+- **[`logger.py`](logger.py): Structured logging with async exception handling
+- **[`vocabulary.py`](vocabulary.py): Vocabulary state management with file persistence
+- **[`text_processor.py`](text_processor.py): Advanced text processing utilities
+- **[`translator.py`](translator.py): OpenAI API integration with rate limiting
+- **[`article_processor.py`](article_processor.py): Main processing orchestration
+
+## 🚀 Quick Start
+
+### 1. Installation
+
 ```bash
+# Clone the repository
+git clone <repository-url>
+cd lexilearn
+
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up NLTK data
+python setup.py
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your OpenAI API key
+```
+
+### 2. Configuration
+
+Create a `.env` file with your configuration:
+
+```bash
+# Required
+OPENAI_API_KEY=your-openai-api-key-here
+
+# Optional - customize as needed
+API_MODEL=gpt-4o-mini
+BATCH_SIZE=10
+USE_TARGET_WORDS=true
+LOG_LEVEL=INFO
+```
+
+### 3. Prepare Your Files
+
+Create the following files in your project directory:
+
+- `input_article.txt` - Your English article
+- `known_words.txt` - Words you already know (one per line)
+- `target_words.txt` - Words you want to focus on (optional)
+- `learned_words.txt` - Words you've learned (auto-updated)
+
+### 4. Run the Application
+
+```bash
+# Basic usage
+python main.py
+
+# With custom article
+python main.py --article my_article.txt
+
+# Check help
+python main.py --help
+```
+
+## ⚙️ Configuration
+
+LexiLearn uses a comprehensive configuration system with environment variables. See [Configuration Guide](docs/CONFIGURATION.md) for detailed documentation.
+
+### Quick Configuration
+
+```bash
+# Core API settings
+export OPENAI_API_KEY="sk-..."
+export API_MODEL="gpt-4o-mini"
+
+# Processing settings
+export BATCH_SIZE=10
+export MAX_CONCURRENT_REQUESTS=5
+export USE_TARGET_WORDS=true
+
+# File locations
+export INPUT_ARTICLE="my_article.txt"
+export KNOWN_WORDS_FILE="vocabulary/known.txt"
+```
+
+## 📖 Usage
+
+### CLI Usage
+
+```bash
+# Basic processing
+python main.py
+
+# Custom article file
+python main.py --article documents/article.txt
+
+# Custom configuration via environment
+OPENAI_API_KEY="sk-..." BATCH_SIZE=5 python main.py
+
+# Debug mode
+LOG_LEVEL=DEBUG python main.py --article test.txt
+```
+
+### Programmatic Usage
+
+```python
+import asyncio
+from lexilearn import LexiLearnApp
+
+async def process_article():
+    app = LexiLearnApp()
+    await app.run("my_article.txt")
+
+# Run async
+asyncio.run(process_article())
+```
+
+### Advanced Usage Examples
+
+See [Usage Examples](docs/USAGE_EXAMPLES.md) for comprehensive examples including:
+- Custom vocabulary management
+- Batch processing multiple articles
+- Integration with other applications
+- Custom logging configuration
+
+## 📚 API Documentation
+
+Comprehensive API documentation is available for all modules:
+
+- **[Configuration API](docs/API_CONFIG.md)**: Configuration management
+- **[Logger API](docs/API_LOGGER.md)**: Logging and monitoring
+- **[Vocabulary API](docs/API_VOCABULARY.md)**: Word list management
+- **[Text Processor API](docs/API_TEXT_PROCESSOR.md)**: Text processing utilities
+- **[Translator API](docs/API_TRANSLATOR.md)**: Translation services
+- **[Article Processor API](docs/API_ARTICLE_PROCESSOR.md)**: Main processing pipeline
+
+## 🧪 Development
+
+### Prerequisites
+
+- Python 3.8+
+- OpenAI API key
+- Git
+
+### Setup Development Environment
+
+```bash
+# Clone and setup
+git clone <repository-url>
+cd lexilearn
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Install development dependencies
+pip install pytest black flake8 mypy
+
+# Run setup
 python setup.py
 ```
-可以参考https://blog.csdn.net/qq_39451578/article/details/107682931
-解压tokenizers中的压缩包，taggers中的averaged_perceptron_tagger_eng.zip。
 
-## 配置
+### Running Tests
 
-1. 在 `main.py` 中填入你的 API 配置：
-```python
-API_CONFIG = {
-    "base_url": "https://your-api-endpoint/v1/chat/completions",
-    "api_key": "your-api-key-here",
-    "model": "gpt-4o-mini"
-}
-```
-
-## 使用方法
-
-1. 准备文件：
-   - `input_article.txt`：待处理的英文文章
-   - `known_words.txt`：已掌握的单词列表（每行一个）
-   - `target_words.txt`：想要学习的目标单词列表（每行一个）
-   - `learned_words.txt`：将自动记录新学会的单词（程序自动创建）
-
-2. 运行程序：
 ```bash
-python main.py
+# Run all tests
+python -m pytest
+
+# Run specific test
+python test_setup.py
+
+# Run with coverage
+python -m pytest --cov=.
+
+# Validate code structure
+python validate_structure.py
 ```
 
-3. 查看结果：
-   - 程序生成 `output_article.txt`
-   - 只标注目标词汇表中的生词
-   - 保持原文的段落结构
-   - 文末附上本次学习的生词表
-   - 新学习的单词自动添加到 learned_words.txt
+### Code Quality
 
-## 词汇管理说明
+```bash
+# Format code
+black .
 
-- `known_words.txt`：已掌握的词汇，不会被修改
-- `target_words.txt`：学习目标词汇
-- `learned_words.txt`：通过本程序学习的新词
+# Lint
+flake8
 
-## 输出示例
+# Type checking
+mypy .
 
-原文：
-```text
-The rapid advancement of artificial intelligence has transformed various sectors of our economy.
+# Validate structure
+python validate_structure.py
 ```
 
-target_words.txt 内容：
-```text
-advancement
-artificial
-intelligence
-transform
-sector
-economy
+### Development Workflow
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Make changes and add tests
+4. Run quality checks: `python validate_structure.py`
+5. Commit changes: `git commit -am 'Add new feature'`
+6. Push to branch: `git push origin feature/new-feature`
+7. Create Pull Request
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](docs/CONTRIBUTING.md) for detailed information on:
+- Code style and standards
+- Testing requirements
+- Pull request process
+- Issue reporting
+- Development setup
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **"Input file not found"**
+   - Ensure file exists in the specified location
+   - Check file permissions
+   - Use absolute paths if necessary
+
+2. **"API key not found"**
+   - Set `OPENAI_API_KEY` environment variable
+   - Check `.env` file configuration
+   - Verify API key validity
+
+3. **"Rate limit exceeded"**
+   - Reduce `BATCH_SIZE` and `MAX_CONCURRENT_REQUESTS`
+   - Increase `SLEEP_TIME` between batches
+   - Check OpenAI account limits
+
+4. **"NLTK data download failed"**
+   - Run: `python setup.py`
+   - Manual: `python -c "import nltk; nltk.download('punkt'); nltk.download('wordnet'); nltk.download('averaged_perceptron_tagger')"`
+
+### Debug Mode
+
+Enable debug logging for detailed troubleshooting:
+
+```bash
+LOG_LEVEL=DEBUG python main.py --article test.txt
 ```
 
-输出：
-```text
-The rapid advancement(进展) of artificial(人工的) intelligence(智能) has transformed(改变) various sectors(部门) of our economy(经济).
+### Log Analysis
 
-==================================================
-Word Bank
-==================================================
+Check application logs for detailed error information:
 
-advancement : 进展
-artificial  : 人工的
-economy     : 经济
-intelligence: 智能
-sectors     : 部门
-transformed : 改变
+```bash
+# View recent logs
+tail -f lexilearn.log
+
+# Search for errors
+grep ERROR lexilearn.log
+
+# Debug specific module
+LOG_LEVEL=DEBUG python main.py 2>&1 | grep -E "(ERROR|DEBUG)"
 ```
 
-## 注意事项
+## 📊 Monitoring and Observability
 
-1. 确保 API 配置正确
-2. 目标词汇表使用单词原形
-3. 专有名词（人名、地名）会自动跳过
-4. 同一个单词只会在词汇表中出现一次
-5. 已学习的单词会自动记录，下次不再标注
+- **Logging**: Structured JSON logging with configurable levels
+- **Metrics**: Processing statistics and vocabulary tracking
+- **Error Tracking**: Comprehensive exception handling and reporting
+- **Performance**: Batch processing metrics and timing information
 
-## 性能调优
+## 🔒 Security
 
-可以在代码中调整以下参数：
-```python
-APP_CONFIG = {
-    "batch_size": 10,          # 并行处理的批量大小
-    "connector_limit": 10,     # 并发连接数限制
-    "sleep_time": 0.5,        # 批次间延迟时间（秒）
-}
-```
+- API keys stored in environment variables (never commit to git)
+- Input validation on all user-provided data
+- Secure file handling with proper permissions
+- No sensitive data in logs
 
-## 许可证
+## 📄 License
 
-MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- OpenAI for providing the translation API
+- NLTK team for text processing tools
+- Python asyncio community for async best practices
+
+---
+
+**Need help?** Check our [troubleshooting guide](docs/TROUBLESHOOTING.md) or [open an issue](https://github.com/your-repo/lexilearn/issues).

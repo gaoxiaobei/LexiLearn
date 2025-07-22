@@ -1,0 +1,50 @@
+[run]
+source = .
+omit = 
+    */tests/*
+    */test_*
+    setup.py
+    */venv/*
+    */virtualenv/*
+    */__pycache__/*
+    */site-packages/*
+    */dist/*
+    */build/*
+    */.tox/*
+    */.pytest_cache/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*
+    @(abc\.)?abstractmethod
+    @(abc\.)?abstractproperty
+    pass
+    raise ImportError
+    except ImportError:
+    except KeyboardInterrupt:
+    except SystemExit:
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+
+precision = 2
+show_missing = True
+skip_covered = False
+sort = Name
+
+[html]
+directory = htmlcov
+title = LexiLearn Coverage Report
+
+[xml]
+output = coverage.xml
+
+[json]
+output = coverage.json

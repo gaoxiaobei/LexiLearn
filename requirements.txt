@@ -1,3 +1,27 @@
-aiohttp>=3.8.0
-nltk>=3.6.0
-tqdm>=4.65.0
+# LexiLearn - Production Dependencies
+# Pin exact versions for production stability
+
+# Core async HTTP client
+aiohttp==3.9.5
+aiofiles==23.2.1
+
+# Natural Language Processing
+nltk==3.8.1
+
+# Progress bars and utilities
+tqdm==4.66.4
+
+# Environment configuration
+python-dotenv==1.0.1
+
+# Data validation and serialization
+pydantic==2.7.4
+
+# Logging enhancements (optional but recommended)
+structlog==24.1.0
+
+# Performance monitoring (optional)
+psutil==5.9.8
+
+# Backwards compatibility
+typing-extensions==4.12.2
