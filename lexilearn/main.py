@@ -21,9 +21,9 @@ import asyncio
 import argparse
 import sys
 from pathlib import Path
-from logger import logger
-from config import config
-from article_processor import ArticleProcessor
+from .logger import logger
+from .config import config
+from .article_processor import ArticleProcessor
 
 
 class LexiLearnApp:

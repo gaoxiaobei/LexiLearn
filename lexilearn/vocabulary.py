@@ -9,8 +9,8 @@ import asyncio
 from pathlib import Path
 from typing import Set, List, Optional
 import aiofiles
-from logger import logger
-from config import config
+from .logger import logger
+from .config import config
 
 
 class VocabularyError(Exception):

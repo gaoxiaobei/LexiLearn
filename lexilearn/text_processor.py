@@ -12,7 +12,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.tag import pos_tag
 from nltk.tokenize.treebank import TreebankWordDetokenizer
-from logger import logger
+from .logger import logger
 
 
 class TextProcessingError(Exception):

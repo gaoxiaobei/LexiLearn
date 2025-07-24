@@ -8,8 +8,8 @@ using OpenAI's GPT models.
 import asyncio
 import aiohttp
 from typing import Tuple, Optional
-from logger import logger
-from config import config
+from .logger import logger
+from .config import config
 
 
 class TranslationError(Exception):

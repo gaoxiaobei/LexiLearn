@@ -9,7 +9,7 @@ import logging.handlers
 import sys
 from pathlib import Path
 from typing import Optional
-from config import config
+from .config import config
 
 
 class LexiLearnLogger:

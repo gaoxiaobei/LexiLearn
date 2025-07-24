@@ -15,13 +15,13 @@ def validate_file_structure():
     print("📁 Validating file structure...")
     
     required_files = [
-        'main.py',
-        'config.py',
-        'logger.py',
-        'vocabulary.py',
-        'text_processor.py',
-        'translator.py',
-        'article_processor.py',
+        'lexilearn/main.py',
+        'lexilearn/config.py',
+        'lexilearn/logger.py',
+        'lexilearn/vocabulary.py',
+        'lexilearn/text_processor.py',
+        'lexilearn/translator.py',
+        'lexilearn/article_processor.py',
         '.env.example',
         'requirements.txt',
         'README.md'
@@ -45,13 +45,13 @@ def validate_python_syntax():
     print("🔍 Validating Python syntax...")
     
     python_files = [
-        'main.py',
-        'config.py',
-        'logger.py',
-        'vocabulary.py',
-        'text_processor.py',
-        'translator.py',
-        'article_processor.py'
+        'lexilearn/main.py',
+        'lexilearn/config.py',
+        'lexilearn/logger.py',
+        'lexilearn/vocabulary.py',
+        'lexilearn/text_processor.py',
+        'lexilearn/translator.py',
+        'lexilearn/article_processor.py'
     ]
     
     for file_path in python_files:
@@ -74,9 +74,9 @@ def validate_imports():
     
     # Check for hardcoded API keys
     files_to_check = [
-        'main.py',
-        'config.py',
-        'translator.py'
+        'lexilearn/main.py',
+        'lexilearn/config.py',
+        'lexilearn/translator.py'
     ]
     
     for file_path in files_to_check:
@@ -102,13 +102,13 @@ def validate_docstrings():
     print("📝 Validating documentation...")
     
     python_files = [
-        'config.py',
-        'logger.py',
-        'vocabulary.py',
-        'text_processor.py',
-        'translator.py',
-        'article_processor.py',
-        'main.py'
+        'lexilearn/config.py',
+        'lexilearn/logger.py',
+        'lexilearn/vocabulary.py',
+        'lexilearn/text_processor.py',
+        'lexilearn/translator.py',
+        'lexilearn/article_processor.py',
+        'lexilearn/main.py'
     ]
     
     missing_docs = []
@@ -144,11 +144,11 @@ def validate_type_hints():
     print("🔤 Validating type hints...")
     
     python_files = [
-        'config.py',
-        'vocabulary.py',
-        'text_processor.py',
-        'translator.py',
-        'article_processor.py'
+        'lexilearn/config.py',
+        'lexilearn/vocabulary.py',
+        'lexilearn/text_processor.py',
+        'lexilearn/translator.py',
+        'lexilearn/article_processor.py'
     ]
     
     for file_path in python_files:
@@ -173,10 +173,10 @@ def validate_error_handling():
     print("🛡️  Validating error handling...")
     
     files_to_check = [
-        'vocabulary.py',
-        'translator.py',
-        'article_processor.py',
-        'main.py'
+        'lexilearn/vocabulary.py',
+        'lexilearn/translator.py',
+        'lexilearn/article_processor.py',
+        'lexilearn/main.py'
     ]
     
     for file_path in files_to_check:

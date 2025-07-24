@@ -26,7 +26,7 @@ git clone <repository-url>
 cd lexilearn
 
 # Run automated setup
-python setup.py
+python download_nltk_data.py
 
 # Configure environment
 cp .env.example .env
@@ -54,6 +54,13 @@ source venv/bin/activate
 ```
 
 #### Step 3: Install Dependencies
+Using Makefile (recommended):
+```bash
+# Install development dependencies
+make install-dev
+```
+
+Manual installation:
 ```bash
 # Install production dependencies
 pip install -r requirements.txt
@@ -87,7 +94,7 @@ cp .env.example .env
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-python setup.py
+python download_nltk_data.py
 ```
 
 #### Using PowerShell
@@ -96,7 +103,7 @@ python setup.py
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python setup.py
+python download_nltk_data.py
 ```
 
 #### Using Windows Subsystem for Linux (WSL)
@@ -107,7 +114,7 @@ sudo apt update && sudo apt install python3 python3-pip
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python setup.py
+python download_nltk_data.py
 ```
 
 ### macOS
@@ -121,7 +128,7 @@ brew install python
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python setup.py
+python download_nltk_data.py
 ```
 
 #### Using Conda
@@ -130,7 +137,7 @@ python setup.py
 conda create -n lexilearn python=3.9
 conda activate lexilearn
 pip install -r requirements.txt
-python setup.py
+python download_nltk_data.py
 ```
 
 ### Linux (Ubuntu/Debian)
@@ -146,7 +153,7 @@ sudo apt install python3 python3-pip python3-venv
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python setup.py
+python download_nltk_data.py
 ```
 
 ### Linux (CentOS/RHEL)
@@ -159,7 +166,7 @@ sudo yum install python3 python3-pip
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python setup.py
+python download_nltk_data.py
 ```
 
 ## ⚙️ Configuration Setup
@@ -239,7 +246,12 @@ lexilearn/
 ├── target_words.txt        # Words to focus on (optional)
 ├── learned_words.txt       # Auto-updated learned words
 ├── output_article.txt      # Processed output
-└── lexilearn.log          # Application logs
+├── lexilearn.log          # Application logs
+├── Makefile               # Build and release automation
+├── scripts/
+│   └── release.sh         # Release automation script
+└── docs/
+    └── RELEASE.md         # Release process documentation
 ```
 
 ## 🧪 Testing Installation
@@ -459,6 +471,69 @@ export CONNECTOR_LIMIT=20
 export MAX_CONCURRENT_REQUESTS=10
 ```
 
+## 🧰 Using the Makefile
+
+LexiLearn includes a comprehensive Makefile that automates common development tasks. To see all available targets, run:
+
+```bash
+make help
+```
+
+### Common Makefile Targets
+
+```bash
+# Install the package in development mode
+make install
+
+# Install development dependencies
+make install-dev
+
+# Install test dependencies
+make install-test
+
+# Run all tests
+make test
+
+# Run unit tests only
+make test-unit
+
+# Run integration tests only
+make test-integration
+
+# Run end-to-end tests only
+make test-e2e
+
+# Run tests with coverage report
+make coverage
+
+# Format code with black and isort
+make format
+
+# Run code linting
+make lint
+
+# Run all code quality checks
+make check
+
+# Run security checks
+make security
+
+# Build source distribution and wheel
+make build
+
+# Clean build artifacts
+make clean
+
+# Clean all generated files
+make distclean
+
+# Test release to Test PyPI
+make release-test
+
+# Release to PyPI (requires proper checks)
+make release
+```
+
 ## 🔄 Update Instructions
 
 ### Updating LexiLearn
@@ -468,6 +543,9 @@ git pull origin main
 
 # Update dependencies
 pip install -r requirements.txt --upgrade
+
+# Or using Makefile
+make install-dev
 
 # Verify installation
 python verify_installation.py

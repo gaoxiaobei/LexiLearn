@@ -10,11 +10,11 @@ from typing import List, Set, Dict, Tuple
 from pathlib import Path
 import aiofiles
 from tqdm.asyncio import tqdm_asyncio
-from logger import logger
-from config import config
-from vocabulary import VocabularyManager
-from text_processor import TextProcessor
-from translator import Translator
+from .logger import logger
+from .config import config
+from .vocabulary import VocabularyManager
+from .text_processor import TextProcessor
+from .translator import Translator
 
 
 class ArticleProcessingError(Exception):

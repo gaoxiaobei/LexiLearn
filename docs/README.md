@@ -22,6 +22,7 @@ This documentation is organized into the following sections:
 ### 🤝 Development
 - **[Contributing Guidelines](CONTRIBUTING.md)** - How to contribute to the project
 - **[Troubleshooting Guide](TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Release Process](RELEASE.md)** - How to release new versions
 
 ## 🚀 Quick Start
 
@@ -78,7 +79,7 @@ This documentation is continuously updated. Check the [main README](../README.md
 ### Essential Commands
 ```bash
 # Install
-python setup.py
+python download_nltk_data.py
 
 # Configure
 cp .env.example .env

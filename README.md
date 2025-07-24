@@ -38,8 +38,8 @@ lexilearn/
 ├── text_processor.py      # Text processing (tokenization, normalization, POS tagging)
 ├── translator.py          # OpenAI API client for translations
 ├── article_processor.py   # Main processing pipeline orchestration
-├── setup.py               # NLTK data setup
-├── test_setup.py          # Testing utilities
+├── setup_nltk.py          # NLTK data setup
+├── validate.py            # Validation script entry point
 ├── validate_structure.py  # Code quality validation
 ├── .env.example          # Configuration template
 ├── requirements.txt      # Dependencies
@@ -48,35 +48,23 @@ lexilearn/
 
 ### Core Modules
 
-- **[`config.py`](config.py): Centralized configuration management with validation
-- **[`logger.py`](logger.py): Structured logging with async exception handling
-- **[`vocabulary.py`](vocabulary.py): Vocabulary state management with file persistence
-- **[`text_processor.py`](text_processor.py): Advanced text processing utilities
-- **[`translator.py`](translator.py): OpenAI API integration with rate limiting
-- **[`article_processor.py`](article_processor.py): Main processing orchestration
+- **[`config.py`](lexilearn/config.py)**: Centralized configuration management with validation
+- **[`logger.py`](lexilearn/logger.py)**: Structured logging with async exception handling
+- **[`vocabulary.py`](lexilearn/vocabulary.py)**: Vocabulary state management with file persistence
+- **[`text_processor.py`](lexilearn/text_processor.py)**: Advanced text processing utilities
+- **[`translator.py`](lexilearn/translator.py)**: OpenAI API integration with rate limiting
+- **[`article_processor.py`](lexilearn/article_processor.py)**: Main processing orchestration
 
 ## 🚀 Quick Start
 
 ### 1. Installation
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd lexilearn
+# Install LexiLearn package
+pip install lexilearn
 
-# Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up NLTK data
-python setup.py
-
-# Set up environment
-cp .env.example .env
-# Edit .env with your OpenAI API key
+# Set up NLTK data (required first-time setup)
+lexilearn-setup
 ```
 
 ### 2. Configuration
@@ -107,13 +95,13 @@ Create the following files in your project directory:
 
 ```bash
 # Basic usage
-python main.py
+lexilearn
 
 # With custom article
-python main.py --article my_article.txt
+lexilearn --article my_article.txt
 
 # Check help
-python main.py --help
+lexilearn --help
 ```
 
 ## ⚙️ Configuration
@@ -143,16 +131,16 @@ export KNOWN_WORDS_FILE="vocabulary/known.txt"
 
 ```bash
 # Basic processing
-python main.py
+lexilearn
 
 # Custom article file
-python main.py --article documents/article.txt
+lexilearn --article documents/article.txt
 
 # Custom configuration via environment
-OPENAI_API_KEY="sk-..." BATCH_SIZE=5 python main.py
+OPENAI_API_KEY="sk-..." BATCH_SIZE=5 lexilearn
 
 # Debug mode
-LOG_LEVEL=DEBUG python main.py --article test.txt
+LOG_LEVEL=DEBUG lexilearn --article test.txt
 ```
 
 ### Programmatic Usage
@@ -188,6 +176,15 @@ Comprehensive API documentation is available for all modules:
 - **[Translator API](docs/API_TRANSLATOR.md)**: Translation services
 - **[Article Processor API](docs/API_ARTICLE_PROCESSOR.md)**: Main processing pipeline
 
+## 📖 Additional Documentation
+
+- **[Installation Guide](docs/INSTALLATION.md)**: Complete setup instructions
+- **[Configuration Guide](docs/CONFIGURATION.md)**: Configuration options
+- **[Usage Examples](docs/USAGE_EXAMPLES.md)**: Practical examples
+- **[Contributing Guidelines](docs/CONTRIBUTING.md)**: How to contribute
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)**: Common issues
+- **[Release Process](docs/RELEASE.md)**: How to release new versions
+
 ## 🧪 Development
 
 ### Prerequisites
@@ -204,45 +201,96 @@ git clone <repository-url>
 cd lexilearn
 python -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
 
 # Install development dependencies
-pip install pytest black flake8 mypy
+make install-dev
 
 # Run setup
-python setup.py
+lexilearn-setup
+```
+
+Alternatively, you can manually install dependencies:
+
+```bash
+# Clone and setup
+git clone <repository-url>
+cd lexilearn
+python -m venv venv
+source venv/bin/activate
+pip install -e .[dev]
+
+# Run setup
+lexilearn-setup
 ```
 
 ### Running Tests
+
+Using Makefile (recommended):
+
+```bash
+# Run all tests
+make test
+
+# Run unit tests only
+make test-unit
+
+# Run integration tests only
+make test-integration
+
+# Run end-to-end tests only
+make test-e2e
+
+# Run tests with coverage
+make coverage
+```
+
+Manual testing:
 
 ```bash
 # Run all tests
 python -m pytest
 
 # Run specific test
-python test_setup.py
+lexilearn-validate
 
 # Run with coverage
-python -m pytest --cov=.
-
-# Validate code structure
-python validate_structure.py
+python -m pytest --cov=lexilearn
 ```
 
 ### Code Quality
 
+Using Makefile (recommended):
+
+```bash
+# Format code
+make format
+
+# Lint code
+make lint
+
+# Run all code quality checks
+make check
+
+# Run security checks
+make security
+```
+
+Manual code quality:
+
 ```bash
 # Format code
 black .
+isort .
 
 # Lint
 flake8
+pylint lexilearn
 
 # Type checking
 mypy .
 
 # Validate structure
-python validate_structure.py
+lexilearn-validate
 ```
 
 ### Development Workflow
@@ -250,10 +298,11 @@ python validate_structure.py
 1. Fork the repository
 2. Create feature branch: `git checkout -b feature/new-feature`
 3. Make changes and add tests
-4. Run quality checks: `python validate_structure.py`
-5. Commit changes: `git commit -am 'Add new feature'`
-6. Push to branch: `git push origin feature/new-feature`
-7. Create Pull Request
+4. Run quality checks: `make check` or `lexilearn-validate`
+5. Run tests: `make test`
+6. Commit changes: `git commit -am 'Add new feature'`
+7. Push to branch: `git push origin feature/new-feature`
+8. Create Pull Request
 
 ## 🤝 Contributing
 
@@ -284,7 +333,7 @@ We welcome contributions! Please see our [Contributing Guidelines](docs/CONTRIBU
    - Check OpenAI account limits
 
 4. **"NLTK data download failed"**
-   - Run: `python setup.py`
+   - Run: `lexilearn-setup`
    - Manual: `python -c "import nltk; nltk.download('punkt'); nltk.download('wordnet'); nltk.download('averaged_perceptron_tagger')"`
 
 ### Debug Mode
@@ -292,7 +341,7 @@ We welcome contributions! Please see our [Contributing Guidelines](docs/CONTRIBU
 Enable debug logging for detailed troubleshooting:
 
 ```bash
-LOG_LEVEL=DEBUG python main.py --article test.txt
+LOG_LEVEL=DEBUG lexilearn --article test.txt
 ```
 
 ### Log Analysis
@@ -307,7 +356,7 @@ tail -f lexilearn.log
 grep ERROR lexilearn.log
 
 # Debug specific module
-LOG_LEVEL=DEBUG python main.py 2>&1 | grep -E "(ERROR|DEBUG)"
+LOG_LEVEL=DEBUG lexilearn 2>&1 | grep -E "(ERROR|DEBUG)"
 ```
 
 ## 📊 Monitoring and Observability
